@@ -28,10 +28,11 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # --legacy-peer-deps: the demo's Angular CLI 22 declares a peer on Angular 22.
       - name: Install Angular ${{ matrix.angular }}
         if: matrix.angular != 22
         run: >-
-          npm install --no-save
+          npm install --no-save --legacy-peer-deps
           @angular/cdk@${{ matrix.angular }}
           @angular/common@${{ matrix.angular }}
           @angular/compiler@${{ matrix.angular }}
@@ -39,7 +40,11 @@ jobs:
           @angular/platform-browser@${{ matrix.angular }}
       - run: npm run check
       - run: npm test
-      - run: npm run build
+      - run: npm run build:lib
+      # The demo is built once: Angular CLI 21 requires TypeScript < 6, which the workspace does not use.
+      - name: Build demo
+        if: matrix.angular == 22
+        run: npm run build:demo
 
   commitlint:
     name: Commitlint

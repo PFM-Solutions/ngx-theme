@@ -38,18 +38,24 @@
   },
   "scripts": {
     "prepare": "vp config",
-    "build": "vp pack",
+    "build": "npm run build:lib && npm run build:demo",
     "dev": "vp pack --watch",
     "lint": "vp lint",
     "format": "vp fmt . --write",
     "check": "vp check",
     "test": "vp test run",
-    "test:ci": "vp test run --coverage"
+    "test:ci": "vp test run --coverage",
+    "build:lib": "vp pack",
+    "build:demo": "ng build",
+    "demo": "ng serve"
   },
   "devDependencies": {
+    "@angular/build": "~22.2.3",
     "@angular/cdk": "^22.2.3",
+    "@angular/cli": "~22.2.3",
     "@angular/common": "^22.2.0",
     "@angular/compiler": "^22.2.3",
+    "@angular/compiler-cli": "~22.2.3",
     "@angular/core": "^22.2.0",
     "@angular/platform-browser": "^22.2.0",
     "@typescript/native-preview": "^7.0.0-dev.20260707.2",
