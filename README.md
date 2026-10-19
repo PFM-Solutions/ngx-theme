@@ -8,9 +8,9 @@ Light, dark and system theme for Angular, built on signals. The choice is persis
 
 **[Try the demo](https://pfm-solutions.github.io/ngx-theme/)**
 
-| `circle` (default)                                     | `fade`                                             | `wipe`                                             |
-| ------------------------------------------------------ | -------------------------------------------------- | -------------------------------------------------- |
-| ![Circle transition](docs/media/transition-circle.gif) | ![Fade transition](docs/media/transition-fade.gif) | ![Wipe transition](docs/media/transition-wipe.gif) |
+| `circle` (default)                                      | `fade`                                              | `wipe`                                              |
+| ------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------- |
+| ![Circle transition](docs/images/transition-circle.gif) | ![Fade transition](docs/images/transition-fade.gif) | ![Wipe transition](docs/images/transition-wipe.gif) |
 
 ## Installation
 
