@@ -231,32 +231,21 @@ If a staged version is rejected, delete its tag and GitHub release before re-run
 
 ### First publish
 
-The first version is `0.1.0` (the initial changeset is a minor bump from `0.0.0`). The trusted publisher configuration expires if no publish validates it within 2 days of its creation, so it is created last, right before merging the Version Packages PR.
+The first version is `0.1.0` (the initial changeset is a minor bump from `0.0.0`). npm cannot attach a trusted publisher to a package that does not exist yet, so a maintainer publishes an empty placeholder once by hand; every real version then goes through CI. The trusted publisher configuration expires if no publish validates it within 2 days of its creation, so run the script right before merging the Version Packages PR.
 
-1. **Bootstrap the package** (it does not exist on npm yet, and trusted publishers are configured on an existing package). Sign in with `npm login` as a member of the `pfm-solutions` org with publish rights and 2FA enabled (npm CLI ≥ 11.15), then from a clean checkout of `main`:
+1. **Bootstrap the package.** Sign in with `npm login` as a member of the `pfm-solutions` org with publish rights and 2FA enabled (npm CLI ≥ 11.15), then from the repo root:
 
    ```bash
-   npm ci
-   npm run build:lib
-   npm stage publish --access public --tag bootstrap
-   npm stage list
-   npm stage reject <stage-id>   # asks for 2FA
+   sh scripts/bootstrap-npm.sh
    ```
 
-   Staging a package that does not exist creates it, with a public `0.0.0-stage` placeholder; rejecting the staged `0.0.0` keeps it from ever being released. Check on npmjs.com that the package page now exists.
+   The script refuses to run if the package already exists. It publishes `0.0.0-bootstrap` with the `bootstrap` tag, deprecates it, then runs `npm trust github` for `PFM-Solutions/ngx-theme` and `release.yml`, restricted to `npm stage publish`. `--dry-run` only checks the prerequisites and runs `npm publish --dry-run`. npm asks for 2FA along the way.
 
-2. **Create the trusted publisher** on npmjs.com: package → Settings → Trusted Publisher → GitHub Actions, with:
-   - Organization or user: `PFM-Solutions`
-   - Repository: `ngx-theme`
-   - Workflow filename: `release.yml`
-   - Environment name: empty
-   - Allowed actions: `npm stage publish` only
+   The registry may also point `latest` at the placeholder, whatever the tag. The script prints the dist-tags; the `0.1.0` release replaces `latest`.
 
-   Fields are case-sensitive, npm does not validate them when saving, and a saved configuration cannot be edited: on a typo, delete it and create it again.
+2. **Merge the Version Packages PR.** The `Release` workflow stages `0.1.0`, tags `v0.1.0` and creates the GitHub release. Merging it validates the trusted publisher.
 
-3. **Merge the Version Packages PR.** The `Release` workflow stages `0.1.0`, tags `v0.1.0` and creates the GitHub release. Merging it validates the trusted publisher.
-
-4. **Approve the staged version.** Either on npmjs.com (package → **Staged Packages** → **Approve**) or:
+3. **Approve the staged version.** Either on npmjs.com (package → **Staged Packages** → **Approve**) or:
 
    ```bash
    npm stage list @pfm-solutions/ngx-theme
@@ -265,9 +254,9 @@ The first version is `0.1.0` (the initial changeset is a minor bump from `0.0.0`
 
    `npm stage list/view/approve/reject` need an interactive login and cannot run in CI.
 
-5. **Check** that `npm view @pfm-solutions/ngx-theme version` prints `0.1.0` and that the package page shows the provenance badge.
+4. **Clean up and check.** Remove the stale tag with `npm dist-tag rm @pfm-solutions/ngx-theme bootstrap`, then check that `npm view @pfm-solutions/ngx-theme version` prints `0.1.0` and that the package page shows the provenance badge.
 
-If the 2-day window is missed before the workflow validates the configuration, delete the configuration, create it again and re-run the `Release` workflow (nothing was tagged yet, so the script runs in full).
+If the 2-day window is missed before the workflow validates the configuration, delete it (`npm trust list`, `npm trust revoke --id=<trust-id>`), create it again with `npm trust github @pfm-solutions/ngx-theme --repo PFM-Solutions/ngx-theme --file release.yml --allow-stage-publish`, and re-run the `Release` workflow (nothing was tagged yet, so the script runs in full).
 
 ### Later releases
 
