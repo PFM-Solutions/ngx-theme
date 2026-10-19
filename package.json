@@ -47,7 +47,9 @@
     "test:ci": "vp test run --coverage",
     "build:lib": "vp pack",
     "build:demo": "ng build",
-    "demo": "ng serve"
+    "demo": "ng serve",
+    "changeset": "changeset",
+    "release": "sh scripts/release.sh"
   },
   "devDependencies": {
     "@angular/build": "~22.2.3",
@@ -58,6 +60,8 @@
     "@angular/compiler-cli": "~22.2.3",
     "@angular/core": "^22.2.0",
     "@angular/platform-browser": "^22.2.0",
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
     "@typescript/native-preview": "^7.0.0-dev.20260707.2",
     "@vitest/coverage-v8": "5.0.5",
     "jsdom": "^30.0.0",
