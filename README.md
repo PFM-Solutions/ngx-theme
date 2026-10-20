@@ -264,4 +264,4 @@ Merge the Version Packages PR, then approve the staged version (step 4).
 
 ## License
 
-[Apache-2.0](LICENSE) © PFM Solutions
+[MIT](LICENSE) © PFM Solutions
