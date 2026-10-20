@@ -25,7 +25,7 @@ name=$(node -p "require('./package.json').name")
 npm_version=$(npm --version)
 oldest=$(printf '%s\n%s\n' "$min_npm" "$npm_version" | sort -V | head -n 1)
 if [ "$oldest" != "$min_npm" ]; then
-  echo "npm ${npm_version} is too old: \`npm trust\` and \`npm stage\` need npm >= ${min_npm}." >&2
+  echo "npm ${npm_version} is too old: \`npm trust\` needs npm >= ${min_npm}." >&2
   echo "Run: npm install --global npm@^${min_npm}" >&2
   exit 1
 fi
@@ -88,17 +88,14 @@ echo "Dist-tags after the first publish (a 'latest' pointing at ${placeholder_ve
 npm dist-tag ls "$name"
 
 echo
-echo "Configuring the trusted publisher (${trust_repo}, ${trust_workflow}, \`npm stage publish\` only)..."
-npm trust github "$name" --repo "$trust_repo" --file "$trust_workflow" --allow-stage-publish
+echo "Configuring the trusted publisher (${trust_repo}, ${trust_workflow})..."
+npm trust github "$name" --repo "$trust_repo" --file "$trust_workflow"
 
 cat <<EOF
 
 Done. Next steps:
   1. Merge the "Version packages" PR within 2 days: the configuration expires if no publish validates it by then.
-     The Release workflow stages 0.1.0.
-  2. Approve the staged version on npmjs.com (package > Staged Packages) or:
-       npm stage list ${name}
-       npm stage approve <stage-id>
-  3. Once 0.1.0 is approved, remove the stale 'bootstrap' tag (check with 'npm dist-tag ls ${name}'):
+     The Release workflow publishes 0.1.0.
+  2. Once 0.1.0 is published, remove the stale 'bootstrap' tag (check with 'npm dist-tag ls ${name}'):
        npm dist-tag rm ${name} bootstrap
 EOF

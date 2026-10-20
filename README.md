@@ -219,11 +219,10 @@ npm run check       # format, lint and type check
 
 1. Every PR that changes `src/` carries a changeset; CI fails the PR otherwise.
 2. On every push to `main`, the `Release` workflow runs the Changesets action. While changesets are pending, it opens or updates the **Version Packages** PR.
-3. Merging that PR runs the workflow again: no changeset is left, so it runs `npm run release` (`scripts/release.sh`), which builds the library and runs `npm stage publish` through npm trusted publishing (OIDC, provenance included, no npm secret), then `changeset git-tag`.
+3. Merging that PR runs the workflow again: no changeset is left, so it runs `npm run release` (`scripts/release.sh`), which builds the library and runs `npm publish` through npm trusted publishing (OIDC, provenance included, no npm secret), then `changeset git-tag`.
 4. The action pushes the `vX.Y.Z` tag and creates the GitHub release from the changelog entry.
-5. The version is **staged**, not published: a maintainer approves it with 2FA (below). The tag and the GitHub release exist before that approval.
 
-If a staged version is rejected, delete its tag and GitHub release before re-running the workflow: the release script skips any version whose tag already exists.
+If the publish fails, re-run the workflow: the release script skips any version whose tag already exists, and the tag is only created after a successful publish.
 
 ### Repository settings
 
@@ -240,28 +239,19 @@ The first version is `0.1.0` (the initial changeset is a minor bump from `0.0.0`
    sh scripts/bootstrap-npm.sh
    ```
 
-   The script refuses to run if the package already exists. It publishes `0.0.0-bootstrap` with the `bootstrap` tag, deprecates it, then runs `npm trust github` for `PFM-Solutions/ngx-theme` and `release.yml`, restricted to `npm stage publish`. `--dry-run` only checks the prerequisites and runs `npm publish --dry-run`. npm asks for 2FA along the way.
+   The script refuses to run if the package already exists. It publishes `0.0.0-bootstrap` with the `bootstrap` tag, deprecates it, then runs `npm trust github` for `PFM-Solutions/ngx-theme` and `release.yml`. `--dry-run` only checks the prerequisites and runs `npm publish --dry-run`. npm asks for 2FA along the way.
 
    The registry may also point `latest` at the placeholder, whatever the tag. The script prints the dist-tags; the `0.1.0` release replaces `latest`.
 
-2. **Merge the Version Packages PR.** The `Release` workflow stages `0.1.0`, tags `v0.1.0` and creates the GitHub release. Merging it validates the trusted publisher.
+2. **Merge the Version Packages PR.** The `Release` workflow publishes `0.1.0`, tags `v0.1.0` and creates the GitHub release. Merging it validates the trusted publisher.
 
-3. **Approve the staged version.** Either on npmjs.com (package → **Staged Packages** → **Approve**) or:
+3. **Clean up and check.** Remove the stale tag with `npm dist-tag rm @pfm-solutions/ngx-theme bootstrap`, then check that `npm view @pfm-solutions/ngx-theme version` prints `0.1.0` and that the package page shows the provenance badge.
 
-   ```bash
-   npm stage list @pfm-solutions/ngx-theme
-   npm stage approve <stage-id>   # asks for 2FA
-   ```
-
-   `npm stage list/view/approve/reject` need an interactive login and cannot run in CI.
-
-4. **Clean up and check.** Remove the stale tag with `npm dist-tag rm @pfm-solutions/ngx-theme bootstrap`, then check that `npm view @pfm-solutions/ngx-theme version` prints `0.1.0` and that the package page shows the provenance badge.
-
-If the 2-day window is missed before the workflow validates the configuration, delete it (`npm trust list`, `npm trust revoke --id=<trust-id>`), create it again with `npm trust github @pfm-solutions/ngx-theme --repo PFM-Solutions/ngx-theme --file release.yml --allow-stage-publish`, and re-run the `Release` workflow (nothing was tagged yet, so the script runs in full).
+If the 2-day window is missed before the workflow validates the configuration, delete it (`npm trust list`, `npm trust revoke --id=<trust-id>`), create it again with `npm trust github @pfm-solutions/ngx-theme --repo PFM-Solutions/ngx-theme --file release.yml`, and re-run the `Release` workflow (nothing was tagged yet, so the script runs in full).
 
 ### Later releases
 
-Close and reopen the Version Packages PR to run the CI, merge it, then approve the staged version (step 3).
+Close and reopen the Version Packages PR to run the CI, then merge it.
 
 ## License
 

@@ -9,6 +9,6 @@ if git ls-remote --exit-code --tags origin "refs/tags/v${version}" >/dev/null; t
 fi
 
 npm run build:lib
-npm stage publish --access public
+npm publish --access public
 # Writes the new tag to $CHANGESETS_OUTPUT: the Changesets action then pushes it and creates the GitHub release.
 npx changeset git-tag
