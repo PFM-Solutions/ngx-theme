@@ -8,10 +8,10 @@
  * else means `system`) is resolved against `prefers-color-scheme`, then `<html>` gets the `dark`
  * class when the result is dark and `style.colorScheme` set to the result.
  */
-(function () {
-  var script = document.currentScript;
-  var storageKey = (script && script.getAttribute('data-storage-key')) || 'theme';
-  var theme = null;
+{
+  const script = document.currentScript;
+  const storageKey = (script && script.getAttribute('data-storage-key')) || 'theme';
+  let theme = null;
   try {
     theme = localStorage.getItem(storageKey);
   } catch {
@@ -20,7 +20,7 @@
   if (theme !== 'light' && theme !== 'dark') {
     theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
-  var root = document.documentElement;
+  const root = document.documentElement;
   root.classList.toggle('dark', theme === 'dark');
   root.style.colorScheme = theme;
-})();
+}
