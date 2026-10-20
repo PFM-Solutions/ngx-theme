@@ -13,12 +13,6 @@ function setUp(config?: ThemeConfig): ThemeService {
   return service;
 }
 
-/** The CDK debounces media query changes after the first emission. */
-async function flushSystemChange(): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve));
-  TestBed.tick();
-}
-
 function dispatchStorageEvent(key: string | null, newValue: string | null): void {
   window.dispatchEvent(new StorageEvent('storage', { key, newValue }));
   TestBed.tick();
@@ -150,21 +144,21 @@ describe('ThemeService', () => {
   });
 
   describe('system mode', () => {
-    it('should follow an OS preference change', async () => {
+    it('should follow an OS preference change', () => {
       // Arrange
       const system = new SystemThemeStub(false);
       const service = setUp();
 
       // Act
       system.setDark(true);
-      await flushSystemChange();
+      TestBed.tick();
 
       // Assert
       expect(service.resolvedTheme()).toBe('dark');
       expect(TestingThemeHelpers.htmlState()).toStrictEqual(TestingThemeHelpers.expectedHtmlState('dark'));
     });
 
-    it('should ignore an OS preference change when a theme is chosen', async () => {
+    it('should ignore an OS preference change when a theme is chosen', () => {
       // Arrange
       const system = new SystemThemeStub(false);
       localStorage.setItem(DEFAULT_STORAGE_KEY, 'light');
@@ -172,11 +166,23 @@ describe('ThemeService', () => {
 
       // Act
       system.setDark(true);
-      await flushSystemChange();
+      TestBed.tick();
 
       // Assert
       expect(service.resolvedTheme()).toBe('light');
       expect(TestingThemeHelpers.htmlState()).toStrictEqual(TestingThemeHelpers.expectedHtmlState('light'));
+    });
+
+    it('should stop listening to the OS preference once destroyed', () => {
+      // Arrange
+      const system = new SystemThemeStub(false);
+      setUp();
+
+      // Act
+      TestBed.resetTestingModule();
+
+      // Assert
+      expect(system.listenerCount).toBe(0);
     });
   });
 

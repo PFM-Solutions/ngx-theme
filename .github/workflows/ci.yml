@@ -33,7 +33,6 @@ jobs:
         if: matrix.angular != 22
         run: >-
           npm install --no-save --legacy-peer-deps
-          @angular/cdk@${{ matrix.angular }}
           @angular/common@${{ matrix.angular }}
           @angular/compiler@${{ matrix.angular }}
           @angular/core@${{ matrix.angular }}

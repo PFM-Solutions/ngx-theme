@@ -31,6 +31,10 @@ export class SystemThemeStub {
     vi.stubGlobal('matchMedia', (media: string) => this.#mediaQueryList(media));
   }
 
+  get listenerCount(): number {
+    return this.#listeners.size;
+  }
+
   setDark(dark: boolean): void {
     this.#dark = dark;
     this.#listeners.forEach((listener) => listener({ matches: dark, media: '(prefers-color-scheme: dark)' }));

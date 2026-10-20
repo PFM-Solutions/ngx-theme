@@ -18,7 +18,7 @@ Light, dark and system theme for Angular, built on signals. The choice is persis
 npm install @pfm-solutions/ngx-theme
 ```
 
-Peer dependencies: `@angular/core`, `@angular/common` and `@angular/cdk`, version 21 or later.
+Peer dependencies: `@angular/core` and `@angular/common`, version 21 or later.
 
 ## Setup
 

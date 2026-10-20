@@ -1,7 +1,5 @@
-import { BreakpointObserver } from '@angular/cdk/layout';
 import { DOCUMENT } from '@angular/common';
 import { computed, DestroyRef, effect, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { THEME_CONFIG } from './theme.config';
 import type { ResolvedTheme, Theme } from './theme.types';
 
@@ -28,7 +26,8 @@ export class ThemeService {
   readonly #document = inject(DOCUMENT);
   readonly #root = this.#document.documentElement;
   readonly #window = this.#document.defaultView;
-  readonly #systemState = toSignal(inject(BreakpointObserver).observe(DARK_QUERY), { requireSync: true });
+  readonly #darkQuery = this.#window?.matchMedia(DARK_QUERY);
+  readonly #systemDark = signal(this.#darkQuery?.matches ?? false);
   readonly #theme = signal<Theme>(this.#read());
   #viewTransition: ViewTransition | null = null;
 
@@ -41,7 +40,7 @@ export class ThemeService {
     if (theme !== 'system') {
       return theme;
     }
-    return this.#systemState().matches ? 'dark' : 'light';
+    return this.#systemDark() ? 'dark' : 'light';
   });
 
   constructor() {
@@ -64,8 +63,13 @@ export class ThemeService {
         this.#theme.set(parseTheme(event.newValue));
       }
     };
+    const onSystemChange = (event: MediaQueryListEvent): void => this.#systemDark.set(event.matches);
     this.#window?.addEventListener('storage', onStorage);
-    inject(DestroyRef).onDestroy(() => this.#window?.removeEventListener('storage', onStorage));
+    this.#darkQuery?.addEventListener('change', onSystemChange);
+    inject(DestroyRef).onDestroy(() => {
+      this.#window?.removeEventListener('storage', onStorage);
+      this.#darkQuery?.removeEventListener('change', onSystemChange);
+    });
   }
 
   /**
