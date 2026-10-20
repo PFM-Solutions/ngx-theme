@@ -261,7 +261,7 @@ If the 2-day window is missed before the workflow validates the configuration, d
 
 ### Later releases
 
-Merge the Version Packages PR, then approve the staged version (step 4).
+Close and reopen the Version Packages PR to run the CI, merge it, then approve the staged version (step 3).
 
 ## License
 
