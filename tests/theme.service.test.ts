@@ -309,6 +309,21 @@ describe('ThemeService', () => {
       expect(TestingThemeHelpers.htmlState()).toStrictEqual(TestingThemeHelpers.expectedHtmlState('dark'));
     });
 
+    it('should keep the attributes of a switch started while another was playing', async () => {
+      // Arrange
+      new SystemThemeStub(false);
+      const viewTransition = new ViewTransitionStub();
+      const service = setUp();
+      service.setTheme('dark', POINTER);
+      service.setTheme('light', POINTER);
+
+      // Act
+      await viewTransition.finish(0);
+
+      // Assert
+      expect(TestingThemeHelpers.transitionState()).toStrictEqual(TestThemeConstants.POINTER_TRANSITION_STATE);
+    });
+
     it('should start from the pointer of a click', () => {
       // Arrange
       new SystemThemeStub(false);

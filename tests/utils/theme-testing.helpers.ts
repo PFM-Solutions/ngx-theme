@@ -55,11 +55,11 @@ export class SystemThemeStub {
   }
 }
 
-/** `document.startViewTransition` double: runs the callback at once and finishes the transition on demand. */
+/** `document.startViewTransition` double: runs the callback at once and finishes each transition on demand. */
 export class ViewTransitionStub {
   /** `<html>` state when `startViewTransition` is called, then once its callback has run. */
   readonly snapshots: { before: HtmlThemeState; after: HtmlThemeState }[] = [];
-  #finish: () => void = () => {};
+  readonly #finishers: (() => void)[] = [];
 
   constructor() {
     Object.defineProperty(document, 'startViewTransition', {
@@ -68,13 +68,14 @@ export class ViewTransitionStub {
         const before = TestingThemeHelpers.htmlState();
         update();
         this.snapshots.push({ before, after: TestingThemeHelpers.htmlState() });
-        return { finished: new Promise<void>((resolve) => (this.#finish = resolve)) };
+        return { finished: new Promise<void>((resolve) => this.#finishers.push(resolve)) };
       },
     });
   }
 
-  async finish(): Promise<void> {
-    this.#finish();
+  /** Finishes the transition started at `index`, the first one by default. */
+  async finish(index = 0): Promise<void> {
+    this.#finishers[index]?.();
     await Promise.resolve();
   }
 }

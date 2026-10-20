@@ -30,6 +30,7 @@ export class ThemeService {
   readonly #window = this.#document.defaultView;
   readonly #systemState = toSignal(inject(BreakpointObserver).observe(DARK_QUERY), { requireSync: true });
   readonly #theme = signal<Theme>(this.#read());
+  #viewTransition: ViewTransition | null = null;
 
   /** Theme chosen by the user. */
   readonly theme = this.#theme.asReadonly();
@@ -110,7 +111,13 @@ export class ThemeService {
       this.#theme.set(theme);
       this.#apply(this.resolvedTheme());
     });
+    this.#viewTransition = viewTransition;
     void viewTransition.finished.finally(() => {
+      // Starting a switch skips the one still playing: its end must not strip the attributes the new one relies on.
+      if (this.#viewTransition !== viewTransition) {
+        return;
+      }
+      this.#viewTransition = null;
       this.#root.removeAttribute(TRANSITION_ATTRIBUTE);
       this.#root.removeAttribute(SWITCHING_ATTRIBUTE);
     });

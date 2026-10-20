@@ -139,5 +139,10 @@ export class TestThemeConstants {
       transition: { type: 'fade' },
       expected: { variant: 'fade', duration: '600ms', easing: TestThemeConstants.DEFAULT_EASING },
     },
+    {
+      name: 'a wipe with timing explicitly undefined',
+      transition: { type: 'wipe', duration: undefined, easing: undefined },
+      expected: { variant: 'wipe', duration: '600ms', easing: TestThemeConstants.DEFAULT_EASING },
+    },
   ];
 }
