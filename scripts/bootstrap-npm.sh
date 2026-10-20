@@ -68,6 +68,18 @@ if [ "$dry_run" = true ]; then
 fi
 npm publish "$placeholder_dir" --access public --tag bootstrap
 
+# A new package takes a few minutes to become visible: deprecate and trust return E404 until then.
+echo "Waiting for the registry to serve ${name}@${placeholder_version}..."
+attempts=0
+until npm view "${name}@${placeholder_version}" version >/dev/null 2>&1; do
+  attempts=$((attempts + 1))
+  if [ "$attempts" -ge 60 ]; then
+    echo "${name}@${placeholder_version} is still not visible after 30 minutes: finish with 'npm deprecate' and 'npm trust' by hand." >&2
+    exit 1
+  fi
+  sleep 30
+done
+
 npm deprecate "${name}@${placeholder_version}" "Placeholder published to enable trusted publishing. Install a released version instead."
 
 echo
