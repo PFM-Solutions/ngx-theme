@@ -2,6 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@pfm-solutions/ngx-theme)](https://www.npmjs.com/package/@pfm-solutions/ngx-theme)
 [![CI](https://github.com/PFM-Solutions/ngx-theme/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PFM-Solutions/ngx-theme/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/PFM-Solutions/ngx-theme/badge)](https://scorecard.dev/viewer/?uri=github.com/PFM-Solutions/ngx-theme)
 [![License](https://img.shields.io/npm/l/@pfm-solutions/ngx-theme)](LICENSE)
 
 Light, dark and system theme for Angular, built on signals. The choice is persisted, system mode follows the OS live, a change reaches every open tab, and an init script applies the theme before the first paint. Picking a theme plays an animated transition from the click.
