@@ -8,6 +8,7 @@ import { DURATIONS, type DemoTransition, readSettings, saveSettingsAndReload, TR
   template: `
     <main>
       <header>
+        <p class="scope">@pfm-solutions/</p>
         <h1>ngx-theme</h1>
         <p>Light, dark and system theme for Angular. Pick a theme to see the transition play from your click.</p>
       </header>
