@@ -278,7 +278,7 @@ describe('ThemeService', () => {
       expect(TestingThemeHelpers.transitionState().switching).toBe(false);
     });
 
-    it('should switch inside a view transition, with the DOM updated by its callback', () => {
+    it('should switch inside a view transition, with the DOM updated by its callback', async () => {
       // Arrange
       new SystemThemeStub(false);
       const viewTransition = new ViewTransitionStub();
@@ -286,6 +286,7 @@ describe('ThemeService', () => {
 
       // Act
       service.setTheme('dark', POINTER);
+      await viewTransition.runCallbacks();
 
       // Assert
       expect(viewTransition.snapshots).toStrictEqual([
@@ -328,6 +329,44 @@ describe('ThemeService', () => {
 
       // Assert
       expect(TestingThemeHelpers.transitionState()).toStrictEqual(TestThemeConstants.POINTER_TRANSITION_STATE);
+    });
+
+    it('should not let a pending animated switch override a later instant one', async () => {
+      // Arrange
+      new SystemThemeStub(false);
+      const viewTransition = new ViewTransitionStub();
+      const service = setUp();
+      service.setTheme('dark', POINTER);
+
+      // Act
+      service.setTheme('light');
+      TestBed.tick();
+      await viewTransition.runCallbacks();
+      TestBed.tick();
+
+      // Assert
+      expect(service.theme()).toBe('light');
+      expect(localStorage.getItem(DEFAULT_STORAGE_KEY)).toBe('light');
+      expect(TestingThemeHelpers.htmlState()).toStrictEqual(TestingThemeHelpers.expectedHtmlState('light'));
+      expect(TestingThemeHelpers.transitionState()).toMatchObject({ switching: false, variant: null });
+    });
+
+    it('should not let a pending animated switch override a change from another tab', async () => {
+      // Arrange
+      new SystemThemeStub(false);
+      const viewTransition = new ViewTransitionStub();
+      const service = setUp();
+      service.setTheme('dark', POINTER);
+
+      // Act
+      dispatchStorageEvent(DEFAULT_STORAGE_KEY, 'light');
+      await viewTransition.runCallbacks();
+      TestBed.tick();
+
+      // Assert
+      expect(service.theme()).toBe('light');
+      expect(TestingThemeHelpers.htmlState()).toStrictEqual(TestingThemeHelpers.expectedHtmlState('light'));
+      expect(TestingThemeHelpers.transitionState()).toMatchObject({ switching: false, variant: null });
     });
 
     it('should start from the pointer of a click', () => {

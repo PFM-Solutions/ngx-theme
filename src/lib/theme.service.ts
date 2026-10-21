@@ -60,6 +60,7 @@ export class ThemeService {
     const onStorage = (event: StorageEvent): void => {
       // A `null` key means the whole storage was cleared.
       if (event.key === this.#storageKey || event.key === null) {
+        this.#cancelTransition();
         this.#theme.set(parseTheme(event.newValue));
       }
     };
@@ -93,6 +94,7 @@ export class ThemeService {
       !('startViewTransition' in this.#document) ||
       this.#window.matchMedia(REDUCED_MOTION_QUERY).matches
     ) {
+      this.#cancelTransition();
       this.#theme.set(theme);
       return;
     }
@@ -111,7 +113,11 @@ export class ThemeService {
     this.#root.setAttribute(SWITCHING_ATTRIBUTE, '');
 
     // The "after" snapshot is taken when the callback returns, so the DOM must already show the new theme.
+    // The callback runs on a later frame: a switch made in between supersedes it.
     const viewTransition = this.#document.startViewTransition(() => {
+      if (this.#viewTransition !== viewTransition) {
+        return;
+      }
       this.#theme.set(theme);
       this.#apply(this.resolvedTheme());
     });
@@ -125,6 +131,17 @@ export class ThemeService {
       this.#root.removeAttribute(TRANSITION_ATTRIBUTE);
       this.#root.removeAttribute(SWITCHING_ATTRIBUTE);
     });
+  }
+
+  /** Skips the animated switch in progress, whose callback must not apply its theme over a more recent one. */
+  #cancelTransition(): void {
+    if (!this.#viewTransition) {
+      return;
+    }
+    this.#viewTransition.skipTransition();
+    this.#viewTransition = null;
+    this.#root.removeAttribute(TRANSITION_ATTRIBUTE);
+    this.#root.removeAttribute(SWITCHING_ATTRIBUTE);
   }
 
   #apply(resolved: ResolvedTheme): void {

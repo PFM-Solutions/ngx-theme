@@ -59,22 +59,38 @@ export class SystemThemeStub {
   }
 }
 
-/** `document.startViewTransition` double: runs the callback at once and finishes each transition on demand. */
+/**
+ * `document.startViewTransition` double: runs the callback in a microtask, as browsers run it on a later frame, and
+ * finishes each transition on demand or when skipped.
+ */
 export class ViewTransitionStub {
   /** `<html>` state when `startViewTransition` is called, then once its callback has run. */
   readonly snapshots: { before: HtmlThemeState; after: HtmlThemeState }[] = [];
   readonly #finishers: (() => void)[] = [];
+  readonly #updates: Promise<void>[] = [];
 
   constructor() {
     Object.defineProperty(document, 'startViewTransition', {
       configurable: true,
       value: (update: () => void) => {
         const before = TestingThemeHelpers.htmlState();
-        update();
-        this.snapshots.push({ before, after: TestingThemeHelpers.htmlState() });
-        return { finished: new Promise<void>((resolve) => this.#finishers.push(resolve)) };
+        this.#updates.push(
+          Promise.resolve().then(() => {
+            update();
+            this.snapshots.push({ before, after: TestingThemeHelpers.htmlState() });
+          }),
+        );
+        let finish!: () => void;
+        const finished = new Promise<void>((resolve) => (finish = resolve));
+        this.#finishers.push(finish);
+        return { finished, skipTransition: finish };
       },
     });
+  }
+
+  /** Waits for the callbacks of the transitions started so far. */
+  async runCallbacks(): Promise<void> {
+    await Promise.all(this.#updates);
   }
 
   /** Finishes the transition started at `index`, the first one by default. */
