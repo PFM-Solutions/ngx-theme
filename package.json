@@ -1,6 +1,6 @@
 {
   "name": "@pfm-solutions/ngx-theme",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Light, dark and system theme for Angular: persisted choice, live OS tracking, cross-tab sync and a no-flash init script.",
   "keywords": [
     "angular",
