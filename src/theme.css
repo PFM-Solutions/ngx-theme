@@ -1,0 +1,49 @@
+/* Import once in the global styles. `ThemeService` sets the attributes and variables used below on <html>. */
+
+html[data-theme-switching],
+html[data-theme-switching] *,
+html[data-theme-switching] *::before,
+html[data-theme-switching] *::after {
+  transition: none !important;
+}
+
+/* fade: the default View Transitions cross-fade, timed by the configuration. */
+html[data-theme-transition='fade']::view-transition-group(root) {
+  animation-duration: var(--theme-vt-duration);
+  animation-timing-function: var(--theme-vt-easing);
+}
+
+/* circle and wipe: the new theme is revealed over the old one, without cross-fade. */
+html[data-theme-transition='circle']::view-transition-old(root),
+html[data-theme-transition='circle']::view-transition-new(root),
+html[data-theme-transition='wipe']::view-transition-old(root),
+html[data-theme-transition='wipe']::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html[data-theme-transition='circle']::view-transition-new(root) {
+  animation: theme-circle var(--theme-vt-duration) var(--theme-vt-easing);
+}
+
+html[data-theme-transition='wipe']::view-transition-new(root) {
+  animation: theme-wipe var(--theme-vt-duration) var(--theme-vt-easing);
+}
+
+@keyframes theme-circle {
+  from {
+    clip-path: circle(0 at var(--theme-vt-x) var(--theme-vt-y));
+  }
+  to {
+    clip-path: circle(var(--theme-vt-r) at var(--theme-vt-x) var(--theme-vt-y));
+  }
+}
+
+@keyframes theme-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}

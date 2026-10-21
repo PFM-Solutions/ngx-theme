@@ -1,0 +1,50 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "cli": {
+    "analytics": false,
+    "cache": {
+      "path": "demo/.angular/cache"
+    }
+  },
+  "projects": {
+    "demo": {
+      "projectType": "application",
+      "root": "demo",
+      "sourceRoot": "demo/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "demo/src/main.ts",
+            "index": "demo/index.html",
+            "tsConfig": "demo/tsconfig.app.json",
+            "outputPath": "demo/dist",
+            "assets": [{ "glob": "theme-init.js", "input": "dist", "output": "/" }],
+            "styles": ["demo/src/styles.css"]
+          },
+          "configurations": {
+            "production": {
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": { "buildTarget": "demo:build:production" },
+            "development": { "buildTarget": "demo:build:development" }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    }
+  }
+}

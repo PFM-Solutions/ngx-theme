@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Angular ${{ matrix.angular }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        angular: [21, 22]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # --legacy-peer-deps: the demo's Angular CLI 22 declares a peer on Angular 22.
+      - name: Install Angular ${{ matrix.angular }}
+        if: matrix.angular != 22
+        run: >-
+          npm install --no-save --legacy-peer-deps
+          @angular/common@${{ matrix.angular }}
+          @angular/compiler@${{ matrix.angular }}
+          @angular/core@${{ matrix.angular }}
+          @angular/platform-browser@${{ matrix.angular }}
+      - run: npm run check
+      - run: npm test
+      - run: npm run build:lib
+      # The demo is built once: Angular CLI 21 requires TypeScript < 6, which the workspace does not use.
+      - name: Build demo
+        if: matrix.angular == 22
+        run: npm run build:demo
+
+  commitlint:
+    name: Commitlint
+    # Dependabot commit bodies exceed the conventional line length.
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: >-
+          npx --yes -p @commitlint/cli -p @commitlint/config-conventional
+          commitlint
+          --from ${{ github.event.pull_request.base.sha }}
+          --to ${{ github.event.pull_request.head.sha }}
+          --verbose
+
+  changeset:
+    name: Changeset
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      # The package is the repository root, so `changeset status` alone would flag every PR: only a change under src/ needs a changeset.
+      # A change that must not release a version still needs one: add it with `npx changeset --empty`.
+      - name: Require a changeset when the library changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if git diff --quiet "$BASE_SHA"...HEAD -- src; then
+            echo "No change under src/, no changeset needed."
+          else
+            npx changeset status --since="$BASE_SHA"
+          fi
