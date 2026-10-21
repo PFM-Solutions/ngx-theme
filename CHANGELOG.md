@@ -1,5 +1,11 @@
 # @pfm-solutions/ngx-theme
 
+## 1.0.0
+
+### Major Changes
+
+- [#7](https://github.com/PFM-Solutions/ngx-theme/pull/7) [`0370d3a`](https://github.com/PFM-Solutions/ngx-theme/commit/0370d3a879cb46bcf9019914d9aa8ff75377352d) Thanks [@kristen-pfm](https://github.com/kristen-pfm)! - First stable release: the public API (`provideTheme`, `ThemeService`, `theme.css`, `theme-init.js`) is now covered by semver. No breaking change from 0.1.0.
+
 ## 0.1.0
 
 ### Minor Changes
